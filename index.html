@@ -254,9 +254,7 @@
     box-shadow: 0 10px 26px rgba(56, 189, 248, 0.4);
     transition: transform .2s ease, box-shadow .2s ease;
     z-index: 10;
-    display: none;
   }
-  #addBtn.show { display: block; }
   #addBtn:hover { transform: scale(1.08) rotate(90deg); box-shadow: 0 12px 32px rgba(56, 189, 248, 0.55); }
   #modalMask {
     display: none;
@@ -398,30 +396,40 @@
   var errMsg = document.getElementById('errMsg');
   var currentDept = null;
   var allApps = [];
-  var fileSha = '';
   var pollTimer = null;
 
+  // READ: fetch data.json from same domain (no cross-origin, no proxy issue)
   async function loadApps() {
     try {
-      var r = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, { headers: GH_HEADERS });
-      var info = await r.json();
-      fileSha = info.sha;
-      var content = atob(info.content.replace(/\n/g, ''));
-      allApps = JSON.parse(content);
+      var r = await fetch('data.json?t=' + Date.now());
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      allApps = await r.json();
     } catch(e) {
+      console.error('loadApps error:', e);
       allApps = [];
     }
   }
 
+  // WRITE: use GitHub API to update data.json
   async function saveApps(apps) {
-    var r = await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, { headers: GH_HEADERS });
+    var GH_API = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE;
+    var headers = {
+      'Authorization': 'Bearer ' + GH_TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+    // Get current SHA
+    var r = await fetch(GH_API, { headers: headers });
+    if (!r.ok) throw new Error('GitHub API get failed: ' + r.status);
     var info = await r.json();
-    fileSha = info.sha;
+    var sha = info.sha;
+    // Upload new content
     var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(apps, null, 2))));
-    await fetch('https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE, {
-      method: 'PUT', headers: GH_HEADERS,
-      body: JSON.stringify({ message: 'update apps', content: b64, sha: fileSha, branch: 'main' })
+    var r2 = await fetch(GH_API, {
+      method: 'PUT', headers: headers,
+      body: JSON.stringify({ message: 'update apps', content: b64, sha: sha, branch: 'main' })
     });
+    if (!r2.ok) throw new Error('GitHub API put failed: ' + r2.status);
   }
 
   function renderHome() {
@@ -430,8 +438,7 @@
     pageTitle.textContent = 'VCTC-EV AI application store';
     pageSubtitle.textContent = 'AI 应用快捷入口 · 进入子部门查看软件';
     deptHeader.style.display = 'none';
-    footerTip.innerHTML = '点击部门卡片进入 &nbsp;·&nbsp; 进入部门后可用右下角 <b>+</b> 添加软件 &nbsp;·&nbsp; <b>数据实时同步</b>';
-    addBtn.classList.remove('show');
+    footerTip.innerHTML = '点击部门卡片进入 &nbsp;·&nbsp; <b>数据实时同步</b>';
     cardsEl.className = 'cards home';
     cardsEl.innerHTML = '';
     emptyTip.style.display = 'none';
@@ -468,9 +475,9 @@
     deptHeader.style.display = 'flex';
     deptTitle.textContent = dept;
     footerTip.style.display = 'none';
-    addBtn.classList.add('show');
     cardsEl.className = 'cards';
     doRenderDept(dept);
+    // Auto-refresh every 5 seconds (read from data.json)
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(function() {
       loadApps().then(function() { doRenderDept(dept); });
@@ -515,6 +522,8 @@
           saveApps(allApps).then(function() {
             showToast('已删除');
             doRenderDept(dept);
+          }).catch(function(e) {
+            showToast('删除失败: ' + e.message);
           });
         }
       };
@@ -527,10 +536,10 @@
     var hash = location.hash || '#/';
     var m = hash.match(/^#\/([A-Za-z0-9]+)$/);
     if (m) {
-      if (allApps.length === 0) await loadApps();
+      await loadApps();
       renderDept(m[1].toUpperCase());
     } else {
-      if (allApps.length === 0) await loadApps();
+      await loadApps();
       renderHome();
     }
   }
@@ -538,12 +547,16 @@
   document.getElementById('backBtn').onclick = function () { location.hash = '#/'; };
 
   addBtn.onclick = function () {
-    if (!currentDept) return;
     inName.value = ''; inUrl.value = ''; inDesc.value = '';
-    inDept.value = currentDept;
+    inDept.value = currentDept || 'EV1';
     errMsg.style.display = 'none';
-    document.getElementById('modalTitle').textContent = '为 ' + currentDept + ' 添加软件';
-    document.getElementById('modalSub').textContent = '添加后显示在 ' + currentDept + ' 部门下';
+    if (currentDept) {
+      document.getElementById('modalTitle').textContent = '为 ' + currentDept + ' 添加软件';
+      document.getElementById('modalSub').textContent = '添加后显示在 ' + currentDept + ' 部门下';
+    } else {
+      document.getElementById('modalTitle').textContent = '添加软件';
+      document.getElementById('modalSub').textContent = '选择部门后添加';
+    }
     mask.classList.add('show');
     inName.focus();
   };
@@ -565,6 +578,7 @@
     okBtn.textContent = '提交中...';
     okBtn.disabled = true;
     try {
+      // Reload latest data first
       await loadApps();
       var maxId = 0;
       allApps.forEach(function(a) { if (a.id > maxId) maxId = a.id; });
@@ -572,9 +586,13 @@
       await saveApps(allApps);
       mask.classList.remove('show');
       showToast('✅ 添加成功！');
-      doRenderDept(dept);
+      if (currentDept) {
+        doRenderDept(currentDept);
+      } else {
+        renderHome();
+      }
     } catch(e) {
-      errMsg.textContent = '提交失败，请重试';
+      errMsg.textContent = '提交失败: ' + e.message;
       errMsg.style.display = 'block';
     }
     okBtn.textContent = '添加';
