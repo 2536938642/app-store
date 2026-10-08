@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VCTC-EV AI application store</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-1: #0b1220; --bg-2: #101b33;
+    --card-bg: rgba(255,255,255,0.06); --card-border: rgba(255,255,255,0.12); --card-hover: rgba(255,255,255,0.10);
+    --text: #e8eefc; --text-dim: #8fa0bf;
+    --accent-1: #38bdf8; --accent-2: #818cf8; --accent-3: #34d399;
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(1000px 500px at 15% -10%, rgba(56,189,248,0.18), transparent 60%),
+      radial-gradient(900px 500px at 90% 0%, rgba(129,140,248,0.16), transparent 60%),
+      radial-gradient(800px 600px at 50% 110%, rgba(52,211,153,0.10), transparent 60%),
+      linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    color: var(--text); min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 24px; overflow-x: hidden;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, black 30%, transparent 75%);
+    pointer-events: none;
+  }
+  .header { text-align: center; margin-bottom: 48px; position: relative; }
+  .brand-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px; border-radius: 999px;
+    background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.35);
+    color: var(--accent-1); font-size: 12px; letter-spacing: 2.5px; font-weight: 600; margin-bottom: 20px;
+  }
+  .brand-badge .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent-1); box-shadow: 0 0 10px var(--accent-1);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  h1 {
+    font-size: clamp(28px,5vw,44px); font-weight: 700; letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #fff 10%, #9bc4ff 55%, #818cf8 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { margin-top: 14px; color: var(--text-dim); font-size: 14.5px; }
+  .divider { width: 64px; height: 3px; border-radius: 3px; margin: 22px auto 0; background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); }
+  .dept-header { text-align: left; margin-bottom: 36px; width: 100%; max-width: 1080px; display: flex; align-items: center; gap: 18px; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text); font-size: 14px; font-weight: 600;
+    text-decoration: none; cursor: pointer; transition: background .2s ease, border-color .2s ease;
+  }
+  .back-btn:hover { background: var(--card-hover); border-color: rgba(255,255,255,0.25); }
+  .dept-title { font-size: 34px; font-weight: 700; background: linear-gradient(90deg, #fff, #9bc4ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .dept-count { color: var(--text-dim); font-size: 13.5px; }
+  .cards { display: flex; gap: 26px; flex-wrap: wrap; justify-content: center; position: relative; width: 100%; max-width: 1080px; }
+  .cards.home { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 18px; }
+  @media (max-width:1100px){ .cards.home{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:680px){ .cards.home{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .dept-card {
+    position: relative; display: flex; flex-direction: column; align-items: center; width: 100%;
+    padding: 24px 14px 22px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px;
+    text-decoration: none; color: var(--text); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.35); transition: transform .25s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease;
+    overflow: hidden; cursor: pointer;
+  }
+  .dept-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--c1), var(--c2)); opacity:0; transition: opacity .25s ease; }
+  .dept-card:hover { transform: translateY(-8px); background: var(--card-hover); border-color: rgba(255,255,255,0.22); box-shadow: 0 18px 44px rgba(0,0,0,0.45); }
+  .dept-card:hover::before { opacity: 1; }
+  .dept-card .icon-wrap { width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; letter-spacing:1px; color:#fff; background: linear-gradient(135deg, var(--c1), var(--c2)); box-shadow: 0 6px 18px rgba(0,0,0,0.35); margin-bottom:18px; }
+  .dept-card .name { font-size:20px; font-weight:700; margin-bottom:6px; }
+  .dept-card .count { font-size:12.5px; color: var(--text-dim); }
+  .dept-card .go { margin-top:14px; font-size:13px; font-weight:600; color:var(--c1); opacity:0; transform:translateY(-6px); transition: opacity .25s ease, transform .25s ease; }
+  .dept-card:hover .go { opacity:1; transform:translateY(0); }
+  .app-card {
+    position: relative; display: flex; flex-direction: column; width: 280px; padding: 26px 24px 22px;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; text-decoration: none; color: var(--text);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    transition: transform .25s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease; overflow: hidden;
+  }
+  .app-card::before { content:""; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--c1), var(--c2)); opacity:0; transition: opacity .25s ease; }
+  .app-card:hover { transform: translateY(-8px); background: var(--card-hover); border-color: rgba(255,255,255,0.22); box-shadow: 0 18px 44px rgba(0,0,0,0.45); }
+  .app-card:hover::before { opacity:1; }
+  .app-card .icon-wrap { width:54px; height:54px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:26px; background: linear-gradient(135deg, var(--c1), var(--c2)); box-shadow: 0 6px 18px rgba(0,0,0,0.35); margin-bottom:18px; }
+  .app-card .title { font-size:18px; font-weight:650; margin-bottom:8px; }
+  .app-card .desc { font-size:12.5px; color: var(--text-dim); word-break:break-all; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:36px; }
+  .app-card .go { margin-top:18px; display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--c1); opacity:0; transform:translateX(-8px); transition: opacity .25s ease, transform .25s ease; }
+  .app-card:hover .go { opacity:1; transform:translateX(0); }
+  .empty { width:100%; max-width:1080px; padding:48px 24px; text-align:center; color:var(--text-dim); font-size:14.5px; border:1.5px dashed rgba(255,255,255,0.15); border-radius:18px; background: rgba(255,255,255,0.03); }
+  .footer { margin-top:52px; color:var(--text-dim); font-size:12.5px; letter-spacing:0.4px; }
+  .footer b { color: var(--text); font-weight:600; }
+  .loading { text-align:center; color:var(--text-dim); padding:40px; font-size:14px; }
+  .loading .spinner { display:inline-block; width:28px; height:28px; border:3px solid rgba(255,255,255,0.15); border-top-color:var(--accent-1); border-radius:50%; animation:spin .7s linear infinite; margin-bottom:12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand-badge"><span class="dot"></span>VCTC · EV INTELLIGENCE</div>
+    <h1 id="pageTitle">VCTC-EV AI application store</h1>
+    <div class="subtitle" id="pageSubtitle">AI 应用快捷入口 · 进入子部门查看软件</div>
+    <div class="divider"></div>
+  </div>
+  <div class="dept-header" id="deptHeader" style="display:none">
+    <a class="back-btn" id="backBtn">&larr; 返回</a>
+    <div><div class="dept-title" id="deptTitle"></div><div class="dept-count" id="deptCount"></div></div>
+  </div>
+  <div class="cards" id="cards"><div class="loading"><div class="spinner"></div><div>加载中...</div></div></div>
+  <div class="empty" id="emptyTip" style="display:none">该部门暂无软件</div>
+  <div class="footer" id="footerTip"></div>
+<script>
+var DEPARTMENTS = ['EV1','EVP','EVE','EVK','EVM','EVF'];
+var PALETTES = {
+  EV1:['#38bdf8','#6366f1'], EVP:['#818cf8','#c084fc'],
+  EVE:['#34d399','#22d3ee'], EVK:['#f472b6','#fb923c'],
+  EVM:['#a3e635','#38bdf8'], EVF:['#facc15','#f472b6']
+};
+var APP_PALETTE = ['#60a5fa','#e879f9','#22d3ee','#f472b6','#a3e635','#fb923c'];
+var cardsEl = document.getElementById('cards');
+var emptyTip = document.getElementById('emptyTip');
+var deptHeader = document.getElementById('deptHeader');
+var deptTitle = document.getElementById('deptTitle');
+var deptCount = document.getElementById('deptCount');
+var pageTitle = document.getElementById('pageTitle');
+var pageSubtitle = document.getElementById('pageSubtitle');
+var footerTip = document.getElementById('footerTip');
+var currentDept = null;
+var allApps = [];
+var pollTimer = null;
+
+async function loadData() {
+  var r = await fetch('data.json?t=' + Date.now());
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function renderHome() {
+  currentDept = null;
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  pageTitle.textContent = 'VCTC-EV AI application store';
+  pageSubtitle.textContent = 'AI 应用快捷入口 · 进入子部门查看软件';
+  deptHeader.style.display = 'none';
+  footerTip.innerHTML = '点击部门卡片进入 &nbsp;·&nbsp; <b>数据实时同步</b>';
+  cardsEl.className = 'cards home';
+  cardsEl.innerHTML = '';
+  emptyTip.style.display = 'none';
+  DEPARTMENTS.forEach(function(d) {
+    var p = PALETTES[d]; var cnt = allApps.filter(function(a){return a.dept===d;}).length;
+    var a = document.createElement('a'); a.className = 'dept-card';
+    a.style.cssText = '--c1:'+p[0]+';--c2:'+p[1]; a.href = '#/'+d;
+    var icon = document.createElement('div'); icon.className='icon-wrap'; icon.textContent=d;
+    var name = document.createElement('div'); name.className='name'; name.textContent=d;
+    var count = document.createElement('div'); count.className='count'; count.textContent=cnt+' 个软件';
+    var go = document.createElement('div'); go.className='go'; go.innerHTML='进入 &rarr;';
+    a.appendChild(icon); a.appendChild(name); a.appendChild(count); a.appendChild(go);
+    cardsEl.appendChild(a);
+  });
+}
+
+function renderDept(dept) {
+  if (DEPARTMENTS.indexOf(dept) < 0) { route(); return; }
+  currentDept = dept;
+  var p = PALETTES[dept];
+  pageTitle.textContent = dept;
+  pageSubtitle.textContent = '子部门软件列表';
+  deptHeader.style.display = 'flex';
+  deptTitle.textContent = dept;
+  footerTip.style.display = 'none';
+  cardsEl.className = 'cards';
+  cardsEl.innerHTML = '<div class="loading"><div class="spinner"></div><div>加载中...</div></div>';
+  emptyTip.style.display = 'none';
+  doRenderDept(dept);
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(function() { doRenderDept(dept); }, 5000);
+}
+
+function doRenderDept(dept) {
+  var apps = allApps.filter(function(a){return a.dept===dept;});
+  deptCount.textContent = apps.length + ' 个软件';
+  cardsEl.innerHTML = '';
+  emptyTip.style.display = apps.length ? 'none' : '';
+  apps.forEach(function(app,i) {
+    var c1 = p_[0] || PALETTES[dept][0], c2 = APP_PALETTE[i % APP_PALETTE.length];
+    var a = document.createElement('a'); a.className='app-card';
+    a.style.cssText='--c1:'+PALETTES[dept][0]+';--c2:'+c2; a.href=app.url; a.target='_blank';
+    var icon=document.createElement('div'); icon.className='icon-wrap'; icon.textContent='\u{1F4BB}';
+    var t=document.createElement('div'); t.className='title'; t.textContent=app.name;
+    var d=document.createElement('div'); d.className='desc'; d.textContent=app.url;
+    var go=document.createElement('div'); go.className='go'; go.innerHTML='打开软件 &rarr;';
+    a.appendChild(icon); a.appendChild(t); a.appendChild(d); a.appendChild(go);
+    cardsEl.appendChild(a);
+  });
+}
+
+async function route() {
+  var hash = location.hash || '#/';
+  var m = hash.match(/^#\/([A-Za-z0-9]+)$/);
+  if (m) {
+    renderDept(m[1].toUpperCase());
+  } else {
+    try { allApps = await loadData(); } catch(e) { allApps = []; }
+    renderHome();
+  }
+}
+window.addEventListener('hashchange', route);
+document.getElementById('backBtn').onclick = function(){ location.hash='#/'; };
+route();
+</script>
+</body>
+</html>
