@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Store 管理端</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg-1:#0b1220; --bg-2:#101b33;
+    --card-bg:rgba(255,255,255,0.06); --card-border:rgba(255,255,255,0.12); --card-hover:rgba(255,255,255,0.10);
+    --text:#e8eefc; --text-dim:#8fa0bf;
+    --accent-1:#38bdf8; --accent-2:#818cf8; --accent-3:#34d399; --err:#f87171;
+  }
+  body {
+    font-family:"Segoe UI","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1000px 500px at 15% -10%,rgba(56,189,248,0.18),transparent 60%),radial-gradient(900px 500px at 90% 0%,rgba(129,140,248,0.16),transparent 60%),linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+    color:var(--text); min-height:100vh; padding:32px 24px;
+  }
+  .container{max-width:1080px;margin:0 auto;}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+  .header h1{font-size:26px;font-weight:700;background:linear-gradient(90deg,#fff,#9bc4ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .header a{color:var(--accent-1);text-decoration:none;font-size:14px;font-weight:600;}
+  .login-box{max-width:380px;margin:80px auto 0;background:var(--card-bg);border:1px solid var(--card-border);border-radius:18px;padding:36px 30px;backdrop-filter:blur(14px);}
+  .login-box h2{font-size:20px;margin-bottom:6px;}
+  .login-box .sub{font-size:13px;color:var(--text-dim);margin-bottom:22px;}
+  .login-box input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;color:var(--text);font-size:14px;margin-bottom:16px;}
+  .login-box input:focus{outline:none;border-color:var(--accent-1);}
+  .login-box button{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent-1),var(--accent-2));color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
+  .login-box button:hover{opacity:0.9;}
+  .login-err{color:var(--err);font-size:13px;margin-top:10px;display:none;}
+  .admin{display:none;}
+  .admin.show{display:block;}
+  .stats{display:flex;gap:16px;margin-bottom:28px;}
+  .stat-card{flex:1;background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:20px;backdrop-filter:blur(10px);}
+  .stat-card .label{font-size:12px;color:var(--text-dim);margin-bottom:6px;}
+  .stat-card .value{font-size:28px;font-weight:700;}
+  .stat-card .value.accent{color:var(--accent-1);}
+  .stat-card .value.green{color:var(--accent-3);}
+  .dept-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+  .dept-btn{padding:8px 18px;border-radius:999px;cursor:pointer;border:1px solid var(--card-border);background:var(--card-bg);color:var(--text-dim);font-size:13px;font-weight:600;transition:all .2s ease;}
+  .dept-btn:hover{border-color:var(--accent-1);color:var(--text);}
+  .dept-btn.active{background:linear-gradient(135deg,var(--accent-1),var(--accent-2));border-color:transparent;color:#fff;}
+  .table-wrap{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;overflow:hidden;backdrop-filter:blur(10px);}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;padding:14px 16px;font-size:12px;color:var(--text-dim);font-weight:600;border-bottom:1px solid var(--card-border);text-transform:uppercase;letter-spacing:0.5px;}
+  td{padding:12px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  tr:hover{background:rgba(255,255,255,0.04);}
+  .dept-tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
+  .btn-del{padding:5px 12px;border-radius:8px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:var(--err);font-size:12px;cursor:pointer;}
+  .btn-del:hover{background:rgba(248,113,113,0.15);}
+  .btn-edit{padding:5px 12px;border-radius:8px;border:1px solid rgba(56,189,248,0.3);background:transparent;color:var(--accent-1);font-size:12px;cursor:pointer;margin-right:8px;}
+  .btn-edit:hover{background:rgba(56,189,248,0.15);}
+  .btn-add{padding:10px 22px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent-1),var(--accent-2));color:#fff;font-size:14px;font-weight:600;}
+  #modalMask{display:none;position:fixed;inset:0;background:rgba(5,10,20,0.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;z-index:20;}
+  #modalMask.show{display:flex;}
+  #modal{width:420px;max-width:calc(100vw - 40px);background:linear-gradient(165deg,#16223d,#0f1830);border:1px solid rgba(255,255,255,0.14);border-radius:18px;padding:30px 28px;}
+  #modal h2{font-size:19px;margin-bottom:18px;}
+  #modal label{display:block;font-size:12.5px;color:var(--text-dim);margin:14px 0 6px;}
+  #modal input,#modal select{width:100%;padding:11px 13px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);border-radius:10px;color:var(--text);font-size:14px;}
+  #modal input:focus,#modal select:focus{outline:none;border-color:var(--accent-1);}
+  #modal select option{background:#16223d;}
+  .modal-btns{display:flex;justify-content:flex-end;gap:12px;margin-top:26px;}
+  .modal-btns button{padding:9px 22px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;}
+  #cancelBtn{background:rgba(255,255,255,0.08);color:var(--text-dim);}
+  #okBtn{background:linear-gradient(135deg,var(--accent-1),var(--accent-2));color:#fff;}
+  .modal-err{color:var(--err);font-size:12.5px;margin-top:12px;display:none;}
+  #toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);padding:12px 28px;border-radius:10px;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.4);color:var(--accent-3);font-size:14px;font-weight:600;z-index:30;display:none;}
+  #toast.show{display:block;animation:slideDown .3s ease;}
+  @keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px);}to{opacity:1;transform:translateX(-50%);}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header"><h1>App Store 管理端</h1><a href="./">← 返回应用市场</a></div>
+  <div class="login-box" id="loginBox">
+    <h2>管理员登录</h2>
+    <div class="sub">请输入管理密钥和 GitHub Token</div>
+    <input type="password" id="loginKey" placeholder="管理密钥" onkeydown="if(event.key==='Enter')document.getElementById('loginToken').focus()">
+    <input type="password" id="loginToken" placeholder="GitHub Token (ghp_...)" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="loginErr">密钥或 Token 错误</div>
+    <button onclick="doLogin()">登录</button>
+  </div>
+  <div class="admin" id="adminPanel">
+    <div class="stats">
+      <div class="stat-card"><div class="label">应用总数</div><div class="value accent" id="statTotal">0</div></div>
+      <div class="stat-card"><div class="label">部门数</div><div class="value green" id="statDepts">0</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div class="dept-bar" id="deptBar"></div>
+      <button class="btn-add" onclick="openAddModal()">+ 添加应用</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>名称</th><th>部门</th><th>URL</th><th>操作</th></tr></thead><tbody id="appTableBody"></tbody></table></div>
+  </div>
+</div>
+<div id="modalMask"><div id="modal">
+  <h2 id="modalTitle">添加应用</h2>
+  <label>软件名称</label><input type="text" id="mName" placeholder="例如：知识库问答" maxlength="100">
+  <label>部门</label><select id="mDept"><option value="EV1">EV1</option><option value="EVP">EVP</option><option value="EVE">EVE</option><option value="EVK">EVK</option><option value="EVM">EVM</option><option value="EVF">EVF</option></select>
+  <label>链接 URL</label><input type="text" id="mUrl" placeholder="https://...">
+  <div class="modal-err" id="modalErr">请填写名称和有效的 URL</div>
+  <div class="modal-btns"><button id="cancelBtn" onclick="closeModal()">取消</button><button id="okBtn" onclick="submitModal()">确定</button></div>
+</div></div>
+<div id="toast"></div>
+<script>
+var ADMIN_KEY='vctcevp666';
+var GH_TOKEN='';
+var OWNER='2536938642'; var REPO='app-store'; var FILE='data.json';
+var GH_HEADERS={};
+var editingId=null; var currentFilter=''; var allApps=[]; var fileSha='';
+var DEPT_COLORS={EV1:['#38bdf8','#6366f1'],EVP:['#818cf8','#c084fc'],EVE:['#34d399','#22d3ee'],EVK:['#f472b6','#fb923c'],EVM:['#a3e635','#38bdf8'],EVF:['#facc15','#f472b6']};
+if(sessionStorage.getItem('appstore_admin')==='1'){GH_TOKEN=sessionStorage.getItem('gh_token');GH_HEADERS={'Authorization':'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};showAdmin();}
+
+async function doLogin(){
+  var key=document.getElementById('loginKey').value.trim();
+  var tkn=document.getElementById('loginToken').value.trim();
+  if(key===ADMIN_KEY && tkn.startsWith('ghp_')){
+    GH_TOKEN=tkn;sessionStorage.setItem('appstore_admin','1');sessionStorage.setItem('gh_token',tkn);
+    GH_HEADERS={'Authorization':'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+    showAdmin();
+  } else {document.getElementById('loginErr').style.display='block';}
+}
+function showAdmin(){document.getElementById('loginBox').style.display='none';document.getElementById('adminPanel').classList.add('show');loadApps();}
+
+async function ghGet(path){
+  var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,{headers:GH_HEADERS});
+  return r.json();
+}
+async function ghPut(path,body){
+  var r=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,{method:'PUT',headers:GH_HEADERS,body:JSON.stringify(body)});
+  return r.json();
+}
+
+async function loadApps(){
+  try{
+    var info=await ghGet('/contents/'+FILE);
+    fileSha=info.sha;
+    var content=atob(info.content.replace(/\n/g,''));
+    allApps=JSON.parse(content);
+  }catch(e){allApps=[];}
+  renderTable();
+}
+
+function renderTable(){
+  document.getElementById('statTotal').textContent=allApps.length;
+  var depts={}; allApps.forEach(function(a){depts[a.dept]=1;});
+  document.getElementById('statDepts').textContent=Object.keys(depts).length;
+  var bar=document.getElementById('deptBar'); bar.innerHTML='';
+  var allBtn=document.createElement('div'); allBtn.className='dept-btn'+(currentFilter===''?' active':''); allBtn.textContent='全部'; allBtn.onclick=function(){currentFilter='';renderTable();}; bar.appendChild(allBtn);
+  ['EV1','EVP','EVE','EVK','EVM','EVF'].forEach(function(d){
+    var b=document.createElement('div'); b.className='dept-btn'+(currentFilter===d?' active':''); b.textContent=d;
+    b.onclick=function(){currentFilter=d;renderTable();}; bar.appendChild(b);
+  });
+  var tbody=document.getElementById('appTableBody'); tbody.innerHTML='';
+  var apps=currentFilter?allApps.filter(function(a){return a.dept===currentFilter;}):allApps;
+  if(apps.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-dim);">暂无应用</td></tr>';return;}
+  apps.forEach(function(app){
+    var tr=document.createElement('tr'); var c=DEPT_COLORS[app.dept]||['#666','#999'];
+    tr.innerHTML='<td style="color:var(--text-dim)">'+app.id+'</td><td>'+esc(app.name)+'</td><td><span class="dept-tag" style="background:'+c[0]+'22;color:'+c[0]+'">'+app.dept+'</span></td><td style="color:var(--text-dim);font-size:12px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(app.url)+'</td><td><button class="btn-edit" onclick="openEditModal('+app.id+')">编辑</button><button class="btn-del" onclick="deleteApp('+app.id+')">删除</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function openAddModal(){editingId=null;document.getElementById('modalTitle').textContent='添加应用';document.getElementById('mName').value='';document.getElementById('mUrl').value='';document.getElementById('mDept').value=currentFilter||'EV1';document.getElementById('modalErr').style.display='none';document.getElementById('modalMask').classList.add('show');document.getElementById('mName').focus();}
+function openEditModal(id){var app=allApps.find(function(a){return a.id===id;});if(!app)return;editingId=id;document.getElementById('modalTitle').textContent='编辑应用';document.getElementById('mName').value=app.name;document.getElementById('mUrl').value=app.url;document.getElementById('mDept').value=app.dept;document.getElementById('modalErr').style.display='none';document.getElementById('modalMask').classList.add('show');}
+function closeModal(){document.getElementById('modalMask').classList.remove('show');}
+
+async function submitModal(){
+  var name=document.getElementById('mName').value.trim();var url=document.getElementById('mUrl').value.trim();var dept=document.getElementById('mDept').value;
+  if(url&&!/^(https?:\/\/|\/)/i.test(url))url='https://'+url;
+  if(!name||!/^(https?:\/\/|\/)/i.test(url)){document.getElementById('modalErr').style.display='block';return;}
+  if(editingId){var app=allApps.find(function(a){return a.id===editingId;});if(app){app.name=name;app.url=url;app.dept=dept;}}
+  else{var maxId=0;allApps.forEach(function(a){if(a.id>maxId)maxId=a.id;});allApps.push({id:maxId+1,name:name,url:url,dept:dept});}
+  await saveData();closeModal();renderTable();
+}
+
+async function deleteApp(id){
+  if(!confirm('确定删除？'))return;
+  allApps=allApps.filter(function(a){return a.id!==id;});
+  await saveData();renderTable();
+}
+
+async function saveData(){
+  var content=btoa(unescape(encodeURIComponent(JSON.stringify(allApps,null,2))));
+  await ghPut('/contents/'+FILE,{message:'update data.json',content:content,sha:fileSha,branch:'main'});
+  var info=await ghGet('/contents/'+FILE); fileSha=info.sha;
+  showToast('已保存');
+}
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+document.getElementById('modalMask').onclick=function(e){if(e.target===this)closeModal();};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
