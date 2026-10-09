@@ -567,6 +567,8 @@
   var allApps = [];
   var pollTimer = null;
   var lastSnap = '';
+  var writePending = false;
+  var writePendingSince = 0;
 
   var I18N = {
     zh: {
@@ -789,11 +791,20 @@
     pollTimer = setInterval(function() {
       loadApps().then(function() {
         var snap = JSON.stringify(allApps);
-        if (snap !== lastSnap) {
-          lastSnap = snap;
-          doRenderDept(dept);
-          updateStats();
+        if (snap === lastSnap) {
+          writePending = false;
+          return;
         }
+        if (writePending) {
+          if (Date.now() - writePendingSince > 300000) {
+            writePending = false;
+          } else {
+            return;
+          }
+        }
+        lastSnap = snap;
+        doRenderDept(dept);
+        updateStats();
       });
     }, 5000);
   }
@@ -838,9 +849,12 @@
           saveApps(allApps).then(function() {
             showToast(T('deleted'));
             lastSnap = JSON.stringify(allApps);
+            writePending = true;
+            writePendingSince = Date.now();
             doRenderDept(dept);
             updateStats();
           }).catch(function(e) {
+            writePending = false;
             allApps = before;
             showToast(T('delFailed') + e.message);
           });
@@ -903,6 +917,8 @@
       allApps.forEach(function(a) { if (a.id > maxId) maxId = a.id; });
       allApps.push({ id: maxId + 1, name: name, url: url, dept: dept, desc: desc });
       await saveApps(allApps);
+      writePending = true;
+      writePendingSince = Date.now();
       mask.classList.remove('show');
       showToast(T('addOk'));
       if (currentDept) {
@@ -913,6 +929,7 @@
       }
       updateStats();
     } catch(e) {
+      writePending = false;
       errMsg.textContent = T('submitFailed') + e.message;
       errMsg.style.display = 'block';
     }
