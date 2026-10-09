@@ -47,5 +47,12 @@
     "url": "https://app.itpai.vgcserv.com.cn/chat/WT7G4baegmGyMe6h",
     "dept": "EVP",
     "desc": "This is a translation robot."
+  },
+  {
+    "id": 12,
+    "name": "One_List & Catia Part Number Compare",
+    "url": "https://app.itpai.vgcserv.com.cn/workflow/xV8RxfPwNQ9WbgJi",
+    "dept": "EVP",
+    "desc": "It is capable of comparing the part numbers in one_List with those in CATIA, and can automatically compare the installed-vehicle part numbers with the data part numbers."
   }
 ]
