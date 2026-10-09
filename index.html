@@ -137,7 +137,7 @@
     background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
   }
 
-  .dept-header { text-align: left; margin-bottom: 30px; width: 100%; max-width: 1080px; display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
+  .dept-header { text-align: left; margin-bottom: 30px; width: 100%; max-width: 1520px; display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
   .back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 18px; border-radius: 999px;
@@ -158,19 +158,23 @@
   .dept-count { color: var(--text-dim); font-size: 13.5px; }
 
   .cards {
-    display: flex; gap: 26px; flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
     position: relative; z-index: 1;
     width: 100%;
-    max-width: 1080px;
+    max-width: 1520px;
   }
   .cards.home {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 18px;
   }
+  @media (max-width: 1280px) { .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 1000px) { .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 1100px) { .cards.home { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 680px) {
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .cards.home { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .app-card { width: 100%; max-width: 340px; }
   }
@@ -243,7 +247,7 @@
   .app-card {
     position: relative;
     display: flex; flex-direction: column;
-    width: 280px;
+    width: 100%;
     padding: 26px 24px 22px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -330,7 +334,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .empty {
-    width: 100%; max-width: 1080px;
+    width: 100%; max-width: 1520px;
     padding: 48px 24px;
     text-align: center;
     color: var(--text-dim);
