@@ -26,5 +26,12 @@
     "url": "https://app.itpai.vgcserv.com.cn/chat/ODsub6kir6hsf6o4",
     "dept": "EVP",
     "desc": "This tool can assist us in retrieving various standards and related content from within the Volkswagen Group."
+  },
+  {
+    "id": 9,
+    "name": "Painting ENP Check Robot",
+    "url": "https://app.itpai.vgcserv.com.cn/chat/vgn4eP12zZTbyV6C",
+    "dept": "EVP",
+    "desc": "It has some coating-related knowledge and can assist us with information on various coating inspection procedures."
   }
 ]
