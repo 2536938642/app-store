@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VCTC-EV AI application store</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1220'/%3E%3Cpath d='M37 6L14 38h13l-2 20 23-32H35l2-20z' fill='%2338bdf8'/%3E%3C/svg%3E">
 <script src="config.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,6 +23,7 @@
   html, body { height: 100%; }
   body {
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
     background:
       radial-gradient(1000px 500px at 15% -10%, rgba(56, 189, 248, 0.18), transparent 60%),
       radial-gradient(900px 500px at 90% 0%, rgba(129, 140, 248, 0.16), transparent 60%),
@@ -45,8 +47,41 @@
     background-size: 44px 44px;
     mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, black 30%, transparent 75%);
     pointer-events: none;
+    z-index: 0;
   }
-  .header { text-align: center; margin-bottom: 48px; position: relative; }
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.32;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-orb.o1 {
+    width: 420px; height: 420px;
+    background: var(--accent-1);
+    top: -140px; left: -100px;
+    animation: drift1 22s ease-in-out infinite alternate;
+  }
+  .bg-orb.o2 {
+    width: 460px; height: 460px;
+    background: var(--accent-2);
+    bottom: -160px; right: -120px;
+    animation: drift2 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { from { transform: translate(0, 0); } to { transform: translate(60px, 40px); } }
+  @keyframes drift2 { from { transform: translate(0, 0); } to { transform: translate(-70px, -50px); } }
+
+  ::selection { background: rgba(56, 189, 248, 0.35); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
+  :focus-visible { outline: 2px solid var(--accent-1); outline-offset: 2px; }
+
+  .page { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+  .header { text-align: center; margin-bottom: 44px; position: relative; z-index: 1; }
   .brand-badge {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 16px; border-radius: 999px;
@@ -62,23 +97,36 @@
     box-shadow: 0 0 10px var(--accent-1);
     animation: pulse 2s ease-in-out infinite;
   }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   h1 {
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: 0.4px;
     background: linear-gradient(90deg, #fff 10%, #9bc4ff 55%, #818cf8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .subtitle { margin-top: 14px; color: var(--text-dim); font-size: 14.5px; }
+  .subtitle { margin-top: 12px; color: var(--text-dim); font-size: 15px; }
+  .stats { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .stat {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px; border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    font-size: 12.5px; color: var(--text-dim);
+  }
+  .stat b { color: var(--text); font-weight: 700; }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .stat-dot.s1 { background: var(--accent-1); box-shadow: 0 0 8px var(--accent-1); }
+  .stat-dot.s2 { background: var(--accent-3); box-shadow: 0 0 8px var(--accent-3); animation: pulse 2s ease-in-out infinite; }
   .divider {
-    width: 64px; height: 3px; border-radius: 3px;
-    margin: 22px auto 0;
+    width: 72px; height: 3px; border-radius: 3px;
+    margin: 20px auto 0;
     background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
   }
-  .dept-header { text-align: left; margin-bottom: 36px; width: 100%; max-width: 1080px; display: flex; align-items: center; gap: 18px; }
+
+  .dept-header { text-align: left; margin-bottom: 30px; width: 100%; max-width: 1080px; display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
   .back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 18px; border-radius: 999px;
@@ -86,9 +134,9 @@
     border: 1px solid var(--card-border);
     color: var(--text); font-size: 14px; font-weight: 600;
     text-decoration: none; cursor: pointer;
-    transition: background .2s ease, border-color .2s ease;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
   }
-  .back-btn:hover { background: var(--card-hover); border-color: rgba(255,255,255,0.25); }
+  .back-btn:hover { background: var(--card-hover); border-color: rgba(255,255,255,0.25); transform: translateX(-2px); }
   .dept-title {
     font-size: 34px; font-weight: 700;
     background: linear-gradient(90deg, #fff, #9bc4ff);
@@ -97,10 +145,11 @@
     -webkit-text-fill-color: transparent;
   }
   .dept-count { color: var(--text-dim); font-size: 13.5px; }
+
   .cards {
     display: flex; gap: 26px; flex-wrap: wrap;
     justify-content: center;
-    position: relative;
+    position: relative; z-index: 1;
     width: 100%;
     max-width: 1080px;
   }
@@ -110,12 +159,21 @@
     gap: 18px;
   }
   @media (max-width: 1100px) { .cards.home { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 680px)  { .cards.home { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 680px) {
+    .cards.home { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .app-card { width: 100%; max-width: 340px; }
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   .dept-card {
     position: relative;
     display: flex; flex-direction: column; align-items: center;
     width: 100%;
-    padding: 24px 14px 22px;
+    padding: 26px 14px 22px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 18px;
@@ -127,6 +185,8 @@
     transition: transform .25s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease;
     overflow: hidden;
     cursor: pointer;
+    --glow: rgba(56, 189, 248, 0.25);
+    animation: cardIn .45s ease backwards;
   }
   .dept-card::before {
     content: "";
@@ -139,7 +199,7 @@
     transform: translateY(-8px);
     background: var(--card-hover);
     border-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45), 0 0 34px var(--glow);
   }
   .dept-card:hover::before { opacity: 1; }
   .dept-card .icon-wrap {
@@ -149,11 +209,16 @@
     font-size: 22px; font-weight: 800; letter-spacing: 1px;
     color: #fff;
     background: linear-gradient(135deg, var(--c1), var(--c2));
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(0,0,0,0.35), 0 0 18px var(--glow);
     margin-bottom: 18px;
   }
-  .dept-card .name { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-  .dept-card .count { font-size: 12.5px; color: var(--text-dim); }
+  .dept-card .name { font-size: 20px; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; }
+  .dept-card .count {
+    padding: 3px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    font-size: 12px; color: var(--text-dim);
+  }
   .dept-card .go {
     margin-top: 14px;
     font-size: 13px; font-weight: 600;
@@ -163,6 +228,7 @@
     transition: opacity .25s ease, transform .25s ease;
   }
   .dept-card:hover .go { opacity: 1; transform: translateY(0); }
+
   .app-card {
     position: relative;
     display: flex; flex-direction: column;
@@ -178,6 +244,8 @@
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
     transition: transform .25s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease;
     overflow: hidden;
+    --glow: rgba(56, 189, 248, 0.25);
+    animation: cardIn .45s ease backwards;
   }
   .app-card::before {
     content: "";
@@ -190,7 +258,7 @@
     transform: translateY(-8px);
     background: var(--card-hover);
     border-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45), 0 0 30px var(--glow);
   }
   .app-card:hover::before { opacity: 1; }
   .app-card .icon-wrap {
@@ -199,10 +267,10 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 26px;
     background: linear-gradient(135deg, var(--c1), var(--c2));
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(0,0,0,0.35), 0 0 14px var(--glow);
     margin-bottom: 18px;
   }
-  .app-card .title { font-size: 18px; font-weight: 650; margin-bottom: 8px; }
+  .app-card .title { font-size: 17px; font-weight: 650; margin-bottom: 8px; }
   .app-card .desc {
     font-size: 12.5px; color: var(--text-dim);
     word-break: break-all;
@@ -233,6 +301,17 @@
   }
   .app-card:hover .del { visibility: visible; }
   .app-card .del:hover { background: rgba(248, 113, 113, 0.25); color: #fca5a5; }
+
+  .loader {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.12);
+    border-top-color: var(--accent-1);
+    animation: spin .8s linear infinite;
+    margin: 64px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   .empty {
     width: 100%; max-width: 1080px;
     padding: 48px 24px;
@@ -242,9 +321,14 @@
     border: 1.5px dashed rgba(255,255,255,0.15);
     border-radius: 18px;
     background: rgba(255,255,255,0.03);
+    position: relative; z-index: 1;
   }
-  .footer { margin-top: 52px; color: var(--text-dim); font-size: 12.5px; letter-spacing: 0.4px; }
+  .empty-icon { font-size: 30px; margin-bottom: 12px; }
+
+  .footer { margin-top: 48px; color: var(--text-dim); font-size: 12.5px; letter-spacing: 0.4px; position: relative; z-index: 1; text-align: center; }
   .footer b { color: var(--text); font-weight: 600; }
+  .credit { margin-top: 10px; font-size: 11px; color: rgba(143, 160, 191, 0.55); letter-spacing: 1.5px; }
+
   #addBtn {
     position: fixed; right: 34px; bottom: 34px;
     width: 58px; height: 58px; border-radius: 50%;
@@ -256,6 +340,7 @@
     z-index: 10;
   }
   #addBtn:hover { transform: scale(1.08) rotate(90deg); box-shadow: 0 12px 32px rgba(56, 189, 248, 0.55); }
+
   #modalMask {
     display: none;
     position: fixed; inset: 0;
@@ -267,31 +352,54 @@
   }
   #modalMask.show { display: flex; }
   #modal {
-    width: 380px; max-width: calc(100vw - 40px);
+    width: 400px; max-width: calc(100vw - 40px);
     background: linear-gradient(165deg, #16223d, #0f1830);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 18px;
-    padding: 30px 28px 26px;
+    padding: 28px 26px 24px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
     animation: pop .22s ease;
+    position: relative;
   }
   @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
-  #modal h2 { font-size: 19px; margin-bottom: 4px; }
-  #modal .modal-sub { font-size: 12.5px; color: var(--text-dim); margin-bottom: 18px; }
-  #modal label { display: block; font-size: 12.5px; color: var(--text-dim); margin: 16px 0 7px; letter-spacing: .5px; }
+  #modal .close {
+    position: absolute; top: 14px; right: 14px;
+    width: 28px; height: 28px;
+    border: none; border-radius: 8px;
+    background: rgba(255,255,255,0.07); color: var(--text-dim);
+    font-size: 15px; line-height: 1; cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  #modal .close:hover { background: rgba(255,255,255,0.14); color: var(--text); }
+  #modal h2 { font-size: 19px; margin-bottom: 4px; padding-right: 34px; }
+  #modal .modal-sub { font-size: 12.5px; color: var(--text-dim); margin-bottom: 14px; }
+  #modal label { display: block; font-size: 12.5px; color: var(--text-dim); margin: 14px 0 6px; letter-spacing: .5px; }
   #modal input, #modal select, #modal textarea {
     width: 100%; padding: 11px 13px;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 10px;
     color: var(--text); font-size: 14px;
-    transition: border-color .2s ease, background .2s ease;
+    transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
   }
   #modal input::placeholder { color: #5c6c8c; }
-  #modal input:focus, #modal select:focus, #modal textarea:focus { outline: none; border-color: var(--accent-1); background: rgba(255,255,255,0.10); }
+  #modal input:focus, #modal select:focus, #modal textarea:focus {
+    outline: none; border-color: var(--accent-1);
+    background: rgba(255,255,255,0.10);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.16);
+  }
+  #modal select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238fa0bf' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+    cursor: pointer;
+  }
   #modal select option { background: #16223d; }
-  #modal textarea { resize: vertical; min-height: 50px; font-family: inherit; }
-  .btns { display: flex; justify-content: flex-end; gap: 12px; margin-top: 26px; }
+  #modal textarea { resize: vertical; min-height: 54px; font-family: inherit; }
+  .btns { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
   .btns button {
     padding: 9px 22px; border-radius: 10px;
     font-size: 14px; font-weight: 600; cursor: pointer;
@@ -299,47 +407,66 @@
     transition: transform .15s ease, opacity .15s ease;
   }
   .btns button:hover { transform: translateY(-1px); }
+  .btns button:disabled { opacity: 0.6; cursor: wait; transform: none; }
   #cancelBtn { background: rgba(255,255,255,0.08); color: var(--text-dim); }
   #okBtn { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: #fff; box-shadow: 0 6px 16px rgba(56,189,248,0.35); }
   .err { color: #fca5a5; font-size: 12.5px; margin-top: 12px; display: none; }
+
   #toast {
     position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-    padding: 12px 28px; border-radius: 10px;
+    padding: 12px 28px; border-radius: 12px;
     background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.4);
     color: var(--accent-3); font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     z-index: 30; display: none;
   }
   #toast.show { display: block; animation: slideDown .3s ease; }
   @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translateX(-50%); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-  <div class="header">
-    <div class="brand-badge"><span class="dot"></span>VCTC · EV INTELLIGENCE</div>
-    <h1 id="pageTitle">VCTC-EV AI application store</h1>
-    <div class="subtitle" id="pageSubtitle">AI 应用快捷入口 · 进入子部门查看软件</div>
-    <div class="divider" id="pageDivider"></div>
-  </div>
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
 
-  <div class="dept-header" id="deptHeader" style="display:none">
-    <a class="back-btn" id="backBtn">← 返回</a>
-    <div>
-      <div class="dept-title" id="deptTitle"></div>
-      <div class="dept-count" id="deptCount"></div>
+  <div class="page">
+    <div class="header">
+      <div class="brand-badge"><span class="dot"></span>VCTC · EV INTELLIGENCE</div>
+      <h1 id="pageTitle">VCTC-EV AI application store</h1>
+      <div class="subtitle" id="pageSubtitle">AI 应用快捷入口 · 进入子部门查看软件</div>
+      <div class="stats">
+        <span class="stat"><span class="stat-dot s1"></span><b>6</b>&nbsp;个部门</span>
+        <span class="stat"><span class="stat-dot s2"></span><b id="statsApps">0</b>&nbsp;个应用</span>
+        <span class="stat">数据实时同步</span>
+      </div>
+      <div class="divider" id="pageDivider"></div>
     </div>
-  </div>
 
-  <div class="cards" id="cards">
-    <div style="text-align:center;color:var(--text-dim);padding:60px;font-size:14px;">加载中...</div>
-  </div>
-  <div class="empty" id="emptyTip" style="display:none">该部门暂无软件，点击右下角 + 添加</div>
+    <div class="dept-header" id="deptHeader" style="display:none">
+      <a class="back-btn" id="backBtn">← 返回</a>
+      <div>
+        <div class="dept-title" id="deptTitle"></div>
+        <div class="dept-count" id="deptCount"></div>
+      </div>
+    </div>
 
-  <div class="footer" id="footerTip"></div>
+    <div class="cards" id="cards">
+      <div class="loader"></div>
+    </div>
+    <div class="empty" id="emptyTip" style="display:none"><div class="empty-icon">&#128450;</div>该部门暂无软件，点击右下角 + 添加</div>
+
+    <div class="footer" id="footerTip"></div>
+    <div class="credit">VCTC-EV · AI APPLICATION STORE</div>
+  </div>
 
   <button id="addBtn" title="添加软件">+</button>
 
   <div id="modalMask">
     <div id="modal">
+      <button class="close" id="closeModal" title="关闭">&times;</button>
       <h2 id="modalTitle">添加软件</h2>
       <div class="modal-sub" id="modalSub"></div>
       <label>软件名称</label>
@@ -378,6 +505,7 @@
     EVF: ['#facc15', '#f472b6']
   };
   var APP_PALETTE = ['#60a5fa', '#e879f9', '#22d3ee', '#f472b6', '#a3e635', '#fb923c'];
+  var APP_ICONS = ['\u{1F4BB}', '\u{1F916}', '\u{1F4CA}', '\u{1F4DD}', '\u{1F527}', '\u{1F3AF}'];
 
   var cardsEl = document.getElementById('cards');
   var emptyTip = document.getElementById('emptyTip');
@@ -394,11 +522,23 @@
   var inDesc = document.getElementById('inDesc');
   var inDept = document.getElementById('inDept');
   var errMsg = document.getElementById('errMsg');
+  var statsApps = document.getElementById('statsApps');
   var currentDept = null;
   var allApps = [];
   var pollTimer = null;
+  var lastSnap = '';
 
-  // READ: fetch data.json from same domain (no cross-origin, no proxy issue)
+  function hexToRgba(hex, a) {
+    var h = hex.replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var n = parseInt(h, 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  function updateStats() {
+    if (statsApps) statsApps.textContent = allApps.length;
+  }
+
   async function loadApps() {
     try {
       var r = await fetch('data.json?t=' + Date.now());
@@ -410,7 +550,6 @@
     }
   }
 
-  // WRITE: use GitHub API to update data.json
   async function saveApps(apps) {
     var GH_API = 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE;
     var headers = {
@@ -418,12 +557,10 @@
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
-    // Get current SHA
     var r = await fetch(GH_API, { headers: headers });
     if (!r.ok) throw new Error('GitHub API get failed: ' + r.status);
     var info = await r.json();
     var sha = info.sha;
-    // Upload new content
     var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(apps, null, 2))));
     var r2 = await fetch(GH_API, {
       method: 'PUT', headers: headers,
@@ -439,15 +576,17 @@
     pageSubtitle.textContent = 'AI 应用快捷入口 · 进入子部门查看软件';
     deptHeader.style.display = 'none';
     footerTip.innerHTML = '点击部门卡片进入 &nbsp;·&nbsp; <b>数据实时同步</b>';
+    updateStats();
     cardsEl.className = 'cards home';
     cardsEl.innerHTML = '';
     emptyTip.style.display = 'none';
-    DEPARTMENTS.forEach(function (d) {
+    DEPARTMENTS.forEach(function (d, i) {
       var p = PALETTES[d];
       var cnt = allApps.filter(function(a) { return a.dept === d; }).length;
       var a = document.createElement('a');
       a.className = 'dept-card';
-      a.style.cssText = '--c1:' + p[0] + ';--c2:' + p[1];
+      a.style.cssText = '--c1:' + p[0] + ';--c2:' + p[1] + ';--glow:' + hexToRgba(p[0], 0.30);
+      a.style.animationDelay = (i * 45) + 'ms';
       a.href = '#/' + d;
       var icon = document.createElement('div');
       icon.className = 'icon-wrap';
@@ -474,13 +613,22 @@
     pageSubtitle.textContent = '子部门软件列表';
     deptHeader.style.display = 'flex';
     deptTitle.textContent = dept;
+    deptTitle.style.setProperty('--c1', p[0]);
     footerTip.style.display = 'none';
+    updateStats();
     cardsEl.className = 'cards';
     doRenderDept(dept);
-    // Auto-refresh every 5 seconds (read from data.json)
+    lastSnap = JSON.stringify(allApps);
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(function() {
-      loadApps().then(function() { doRenderDept(dept); });
+      loadApps().then(function() {
+        var snap = JSON.stringify(allApps);
+        if (snap !== lastSnap) {
+          lastSnap = snap;
+          doRenderDept(dept);
+          updateStats();
+        }
+      });
     }, 5000);
   }
 
@@ -494,12 +642,13 @@
       var c1 = p[0], c2 = APP_PALETTE[i % APP_PALETTE.length];
       var a = document.createElement('a');
       a.className = 'app-card';
-      a.style.cssText = '--c1:' + c1 + ';--c2:' + c2;
+      a.style.cssText = '--c1:' + c1 + ';--c2:' + c2 + ';--glow:' + hexToRgba(c1, 0.28);
+      a.style.animationDelay = (i * 45) + 'ms';
       a.href = app.url;
       a.target = '_blank';
       var icon = document.createElement('div');
       icon.className = 'icon-wrap';
-      icon.textContent = '\u{1F4BB}';
+      icon.textContent = APP_ICONS[i % APP_ICONS.length];
       var t = document.createElement('div');
       t.className = 'title';
       t.textContent = app.name;
@@ -518,11 +667,15 @@
       b.onclick = function (ev) {
         ev.preventDefault(); ev.stopPropagation();
         if (confirm('删除软件「' + app.name + '」？')) {
+          var before = allApps;
           allApps = allApps.filter(function(x) { return x.id !== app.id; });
           saveApps(allApps).then(function() {
             showToast('已删除');
+            lastSnap = JSON.stringify(allApps);
             doRenderDept(dept);
+            updateStats();
           }).catch(function(e) {
+            allApps = before;
             showToast('删除失败: ' + e.message);
           });
         }
@@ -552,15 +705,16 @@
     errMsg.style.display = 'none';
     if (currentDept) {
       document.getElementById('modalTitle').textContent = '为 ' + currentDept + ' 添加软件';
-      document.getElementById('modalSub').textContent = '添加后显示在 ' + currentDept + ' 部门下';
+      document.getElementById('modalSub').textContent = '添加后显示在 ' + currentDept + ' 部门下（全员可见）';
     } else {
       document.getElementById('modalTitle').textContent = '添加软件';
-      document.getElementById('modalSub').textContent = '选择部门后添加';
+      document.getElementById('modalSub').textContent = '选择部门后添加（全员可见）';
     }
     mask.classList.add('show');
     inName.focus();
   };
   document.getElementById('cancelBtn').onclick = function () { mask.classList.remove('show'); };
+  document.getElementById('closeModal').onclick = function () { mask.classList.remove('show'); };
   mask.onclick = function (e) { if (e.target === mask) mask.classList.remove('show'); };
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') mask.classList.remove('show'); });
 
@@ -578,7 +732,6 @@
     okBtn.textContent = '提交中...';
     okBtn.disabled = true;
     try {
-      // Reload latest data first
       await loadApps();
       var maxId = 0;
       allApps.forEach(function(a) { if (a.id > maxId) maxId = a.id; });
@@ -587,10 +740,12 @@
       mask.classList.remove('show');
       showToast('✅ 添加成功！');
       if (currentDept) {
+        lastSnap = JSON.stringify(allApps);
         doRenderDept(currentDept);
       } else {
         renderHome();
       }
+      updateStats();
     } catch(e) {
       errMsg.textContent = '提交失败: ' + e.message;
       errMsg.style.display = 'block';
