@@ -312,6 +312,12 @@
   }
   .app-card:hover .del { visibility: visible; }
   .app-card .del:hover { background: rgba(248, 113, 113, 0.25); color: #fca5a5; }
+  .app-card .del.del-arm {
+    width: auto; min-width: 42px; padding: 0 9px;
+    background: rgba(248, 113, 113, 0.30); color: #fecaca;
+    border: 1px solid rgba(248, 113, 113, 0.55);
+    font-weight: 700;
+  }
 
   .loader {
     width: 44px; height: 44px;
@@ -567,8 +573,26 @@
   var allApps = [];
   var pollTimer = null;
   var lastSnap = '';
-  var writePending = false;
-  var writePendingSince = 0;
+  var writtenSnap = null;
+  var writeAt = 0;
+  (function () {
+    try {
+      var s = localStorage.getItem('app-store-written');
+      if (s) {
+        var o = JSON.parse(s);
+        if (o && o.snap && o.at && (Date.now() - o.at < 300000)) { writtenSnap = o.snap; writeAt = o.at; }
+      }
+    } catch (e) {}
+  })();
+  function applyWriteGrace() {
+    if (writtenSnap && Date.now() - writeAt < 300000) {
+      if (JSON.stringify(allApps) !== writtenSnap) allApps = JSON.parse(writtenSnap);
+      return true;
+    }
+    writtenSnap = null;
+    try { localStorage.removeItem('app-store-written'); } catch (e) {}
+    return false;
+  }
 
   var I18N = {
     zh: {
@@ -589,6 +613,7 @@
       enterGo: '进入 &rarr;',
       openGo: '打开软件 &rarr;',
       delBtnTitle: '删除此软件',
+      delConfirmShort: '确认?',
       delConfirm: '删除软件「',
       delConfirmEnd: '」？',
       deleted: '已删除',
@@ -628,6 +653,7 @@
       enterGo: 'Enter &rarr;',
       openGo: 'Open software &rarr;',
       delBtnTitle: 'Delete this software',
+      delConfirmShort: 'Sure?',
       delConfirm: 'Delete "',
       delConfirmEnd: '"?',
       deleted: 'Deleted',
@@ -735,6 +761,9 @@
       body: JSON.stringify({ message: 'update apps', content: b64, sha: sha, branch: 'main' })
     });
     if (!r2.ok) throw new Error('GitHub API put failed: ' + r2.status);
+    writtenSnap = JSON.stringify(apps);
+    writeAt = Date.now();
+    try { localStorage.setItem('app-store-written', JSON.stringify({ snap: writtenSnap, at: writeAt })); } catch (e) {}
   }
 
   function renderHome() {
@@ -790,21 +819,13 @@
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(function() {
       loadApps().then(function() {
+        if (applyWriteGrace()) return;
         var snap = JSON.stringify(allApps);
-        if (snap === lastSnap) {
-          writePending = false;
-          return;
+        if (snap !== lastSnap) {
+          lastSnap = snap;
+          doRenderDept(dept);
+          updateStats();
         }
-        if (writePending) {
-          if (Date.now() - writePendingSince > 300000) {
-            writePending = false;
-          } else {
-            return;
-          }
-        }
-        lastSnap = snap;
-        doRenderDept(dept);
-        updateStats();
       });
     }, 5000);
   }
@@ -841,24 +862,32 @@
       b.className = 'del';
       b.textContent = '×';
       b.title = T('delBtnTitle');
+      var armTimer = null;
       b.onclick = function (ev) {
         ev.preventDefault(); ev.stopPropagation();
-        if (confirm(T('delConfirm') + app.name + T('delConfirmEnd'))) {
-          var before = allApps;
-          allApps = allApps.filter(function(x) { return x.id !== app.id; });
-          saveApps(allApps).then(function() {
-            showToast(T('deleted'));
-            lastSnap = JSON.stringify(allApps);
-            writePending = true;
-            writePendingSince = Date.now();
-            doRenderDept(dept);
-            updateStats();
-          }).catch(function(e) {
-            writePending = false;
-            allApps = before;
-            showToast(T('delFailed') + e.message);
-          });
+        if (!b.classList.contains('del-arm')) {
+          b.classList.add('del-arm');
+          b.textContent = '?';
+          b.title = T('delConfirmShort');
+          armTimer = setTimeout(function () {
+            b.classList.remove('del-arm');
+            b.textContent = '×';
+            b.title = T('delBtnTitle');
+          }, 3000);
+          return;
         }
+        if (armTimer) { clearTimeout(armTimer); armTimer = null; }
+        var before = allApps;
+        allApps = allApps.filter(function(x) { return x.id !== app.id; });
+        saveApps(allApps).then(function() {
+          showToast(T('deleted'));
+          lastSnap = JSON.stringify(allApps);
+          doRenderDept(dept);
+          updateStats();
+        }).catch(function(e) {
+          allApps = before;
+          showToast(T('delFailed') + e.message);
+        });
       };
       a.appendChild(b);
       cardsEl.appendChild(a);
@@ -868,11 +897,11 @@
   async function route() {
     var hash = location.hash || '#/';
     var m = hash.match(/^#\/([A-Za-z0-9]+)$/);
+    await loadApps();
+    applyWriteGrace();
     if (m) {
-      await loadApps();
       renderDept(m[1].toUpperCase());
     } else {
-      await loadApps();
       renderHome();
     }
   }
@@ -917,8 +946,6 @@
       allApps.forEach(function(a) { if (a.id > maxId) maxId = a.id; });
       allApps.push({ id: maxId + 1, name: name, url: url, dept: dept, desc: desc });
       await saveApps(allApps);
-      writePending = true;
-      writePendingSince = Date.now();
       mask.classList.remove('show');
       showToast(T('addOk'));
       if (currentDept) {
@@ -929,7 +956,6 @@
       }
       updateStats();
     } catch(e) {
-      writePending = false;
       errMsg.textContent = T('submitFailed') + e.message;
       errMsg.style.display = 'block';
     }
