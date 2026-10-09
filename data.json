@@ -33,5 +33,12 @@
     "url": "https://app.itpai.vgcserv.com.cn/chat/vgn4eP12zZTbyV6C",
     "dept": "EVP",
     "desc": "It has some coating-related knowledge and can assist us with information on various coating inspection procedures."
+  },
+  {
+    "id": 10,
+    "name": "E-Coating&Oven chatbot",
+    "url": "https://app.itpai.vgcserv.com.cn/chat/xOwiyvo0jbKbvtho",
+    "dept": "EVP",
+    "desc": "It has relevant expertise in the electrophoresis and oven simulation capabilities of the THESEUS software used in coating processes."
   }
 ]
