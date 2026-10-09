@@ -40,5 +40,12 @@
     "url": "https://app.itpai.vgcserv.com.cn/chat/xOwiyvo0jbKbvtho",
     "dept": "EVP",
     "desc": "It has relevant expertise in the electrophoresis and oven simulation capabilities of the THESEUS software used in coating processes."
+  },
+  {
+    "id": 11,
+    "name": "EVP Translate Robot",
+    "url": "https://app.itpai.vgcserv.com.cn/chat/WT7G4baegmGyMe6h",
+    "dept": "EVP",
+    "desc": "This is a translation robot."
   }
 ]
