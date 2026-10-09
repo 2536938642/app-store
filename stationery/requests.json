@@ -1,13 +1,1 @@
-[
-  {
-    "request_id": "af180e84-49a4-45a7-abc3-f4eb3ee5a372",
-    "requester_name": "TEST",
-    "item_name": "TEST_ITEM",
-    "quantity": 1,
-    "reason": "migration test",
-    "status": "approved",
-    "submitted_at": "2026-10-09 16:47:11",
-    "reviewed_at": "2026-10-09 16:47:11",
-    "source_file": ""
-  }
-]
+[]
