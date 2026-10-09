@@ -19,5 +19,12 @@
     "url": "https://app.itpai.vgcserv.com.cn/workflow/eHd880Xvi1duKQcn",
     "dept": "EVP",
     "desc": "An agent with expertise in MTM is able to help us resolve certain inquiries regarding MTM."
+  },
+  {
+    "id": 8,
+    "name": "VW Standard Query Tool V2.0",
+    "url": "https://app.itpai.vgcserv.com.cn/chat/ODsub6kir6hsf6o4",
+    "dept": "EVP",
+    "desc": "This tool can assist us in retrieving various standards and related content from within the Volkswagen Group."
   }
 ]
